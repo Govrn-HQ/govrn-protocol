@@ -5,4 +5,5 @@
 //! These files may be overwritten by the codegen system at any time.
 pub mod contract_test;
 pub mod ds_test;
+pub mod govrn;
 pub mod my_contract;
