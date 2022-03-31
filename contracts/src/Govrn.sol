@@ -22,6 +22,10 @@ contract Govrn {
         uint256 dateOfEngagement;
 		bytes proof;
     }
+	struct BulkContribution {
+		Contribution contribution;
+		address[] partners;
+	}
 
     // struct Attestation {
     //     uint256 contribution;
@@ -31,6 +35,9 @@ contract Govrn {
 
     mapping(uint256 => Contribution) public contributions;
     mapping(uint256 => mapping(address => bool)) public partners;
+
+	/// Events
+    event Mint(address indexed owner, uint256 id);
 
     function mint(
         address _owner,
@@ -54,7 +61,19 @@ contract Govrn {
 
 		// This needs some sort of reentry guard thing
 		// we have to make sure there is an increment or weirdness can happen
+		emit Mint(_owner, contributionCount);
 		contributionCount++;
+    }
+
+    function bulkMint(
+      BulkContribution[] memory _contributions
+    ) public {
+
+       for (uint i = 0; i < _contributions.length; i++) {
+		  BulkContribution memory bulk  = _contributions[i];
+		  this.mint(bulk.contribution.owner, bulk.contribution.name, bulk.contribution.details, bulk.contribution.dateOfSubmission, bulk.contribution.dateOfEngagement, bulk.contribution.proof, bulk.partners);
+        }
+
     }
 
 }
