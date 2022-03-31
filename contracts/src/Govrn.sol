@@ -6,7 +6,6 @@ pragma solidity 0.8.10;
 // 3.Add events
 
 // function balanceOf(address _owner) external view returns (uint256);
-// function ownerOf(uint256 _tokenId) external view returns (address);
 
 contract Govrn {
 
@@ -33,6 +32,7 @@ contract Govrn {
     //     uint256 dateOfSubmission;
     // }
 
+    mapping(address => uint256) public balanceOf;
     mapping(uint256 => Contribution) public contributions;
     mapping(uint256 => mapping(address => bool)) public partners;
 
@@ -61,6 +61,7 @@ contract Govrn {
 
 		// This needs some sort of reentry guard thing
 		// we have to make sure there is an increment or weirdness can happen
+		balanceOf[_owner]++;
 		emit Mint(_owner, contributionCount);
 		contributionCount++;
     }
@@ -75,5 +76,11 @@ contract Govrn {
         }
 
     }
+
+
+    function ownerOf(uint256 _tokenId) external view returns (address) {
+		return contributions[_tokenId].owner;
+	}
+
 
 }

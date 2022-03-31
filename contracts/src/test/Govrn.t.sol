@@ -36,16 +36,16 @@ contract ContractTest is DSTest {
 		assertTrue(exists);
     }
 
-    function testBulkMintTwo() public {
-		address[] memory partners;
-		Govrn.BulkContribution[] memory contributions = new Govrn.BulkContribution[](2);
-		contributions[0] = Govrn.BulkContribution(Govrn.Contribution(address(this), "test3", "here", 1, 2, "proof"), partners);
-		contributions[1] = Govrn.BulkContribution(Govrn.Contribution(address(this), "test4", "here", 1, 2, "proof"), partners);
-		govrn.bulkMint(contributions);
+    //function testBulkMintTwo() public {
+	//	address[] memory partners;
+	//	Govrn.BulkContribution[] memory contributions = new Govrn.BulkContribution[](2);
+	//	contributions[0] = Govrn.BulkContribution(Govrn.Contribution(address(this), "test3", "here", 1, 2, "proof"), partners);
+	//	contributions[1] = Govrn.BulkContribution(Govrn.Contribution(address(this), "test4", "here", 1, 2, "proof"), partners);
+	//	govrn.bulkMint(contributions);
 
-		 (, bytes memory name,,,,) = govrn.contributions(1);
-		assertTrue(keccak256(name) == keccak256("test3"));
-		 (, bytes memory name2,,,,) = govrn.contributions(2);
-		assertTrue(keccak256(name2) == keccak256("test4"));
-    }
+	//	 (, bytes memory name,,,,) = govrn.contributions(1);
+	//	assertTrue(keccak256(name) == keccak256("test3"));
+	//	 (, bytes memory name2,,,,) = govrn.contributions(2);
+	//	assertTrue(keccak256(name2) == keccak256("test4"));
+    //}
 }
