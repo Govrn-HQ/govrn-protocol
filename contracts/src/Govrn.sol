@@ -2,14 +2,7 @@
 pragma solidity 0.8.13;
 
 
-// 1. mint a single contribution
-// 2. bulk mint contributions
-// 3.Add events
-
-// function balanceOf(address _owner) external view returns (uint256);
-
 contract Govrn {
-    error InvalidAddress();
 
     uint256 public contributionCount = 0;
 
@@ -19,7 +12,7 @@ contract Govrn {
 
     uint256 internal immutable INITIAL_CHAIN_ID;
     bytes32 internal immutable INITIAL_DOMAIN_SEPARATOR;
-    string public constant VERSION = "0.8";
+    string public constant VERSION = "0.1";
 
 
     constructor() {

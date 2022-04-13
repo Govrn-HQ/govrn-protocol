@@ -2,9 +2,10 @@
 pragma solidity 0.8.13;
 
 import "ds-test/test.sol";
+import {DSTestPlus} from "solmate/test/utils/DSTestPlus.sol";
 import "../Govrn.sol";
 
-contract ContractTest is DSTest {
+contract ContractTest is DSTestPlus {
     Govrn govrn;
 
     function setUp() public {
@@ -48,4 +49,44 @@ contract ContractTest is DSTest {
 		 (, bytes memory name2,,,,) = govrn.contributions(1);
 		assertTrue(keccak256(name2) == keccak256("test4"));
     }
+
+	function testAttest() public {
+		// mint
+		address[] memory partners = new address[](0);
+		govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+
+		// attest
+		govrn.attest(0, 1);
+		(uint256 contribution, uint8 confidence,) = govrn.attestations(0, address(this));
+		assertTrue(contribution == 0);
+		assertTrue(confidence == 1);
+	}
+
+	// TODO: Add deadline test, bad nonce, bad signature
+	function testPermitAttest() public {
+       uint256 privateKey = 0xBEEF;
+       address owner = hevm.addr(privateKey);
+	   // mint
+	   address[] memory partners = new address[](0);
+	   govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+
+
+       (uint8 v, bytes32 r, bytes32 s) = hevm.sign(
+           privateKey,
+           keccak256(
+               abi.encodePacked(
+                   "\x19\x01",
+                   govrn.DOMAIN_SEPARATOR(),
+                   keccak256(abi.encode(keccak256("Attest(address attestor,uint256 contribution,uint8 confidence,uint256 dateOfSubmission,uint256 nonce,uint256 deadline)"), owner, 0, 1, 100, 0, block.timestamp))
+               )
+           )
+       );
+
+       govrn.permitAttest(owner, 0, 1, 100, block.timestamp, v, r, s);
+	   (uint256 contribution, uint8 confidence, uint256 dateOfSubmission) = govrn.attestations(0, owner);
+		assertTrue(contribution == 0);
+		assertTrue(confidence == 1);
+		assertTrue(dateOfSubmission == 100);
+	}
+
 }
