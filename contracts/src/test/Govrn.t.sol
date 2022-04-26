@@ -48,7 +48,8 @@ contract ContractTest is DSTestPlus {
 
     function testBulkMintTwo() public {
         address[] memory partners;
-        Govrn.BulkContribution[] memory contributions = new Govrn.BulkContribution[](2);
+        Govrn.BulkContribution[]
+            memory contributions = new Govrn.BulkContribution[](2);
         contributions[0] = Govrn.BulkContribution(
             Govrn.Contribution(address(this), "test3", "here", 1, 2, "proof"),
             partners
@@ -64,15 +65,25 @@ contract ContractTest is DSTestPlus {
         (, bytes memory name2, , , , ) = govrn.contributions(1);
         assertTrue(keccak256(name2) == keccak256("test4"));
     }
+}
 
-    function testAttest() public {
-        // mint
+contract GovrnAttestTest is DSTestPlus {
+    Govrn govrn;
+    Vm public constant vm = Vm(HEVM_ADDRESS);
+
+    function setUp() public {
+        govrn = new Govrn(1000);
         address[] memory partners = new address[](0);
         govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+    }
 
+    function testAttest() public {
         // attest
         govrn.attest(0, 1);
-        (uint256 contribution, uint8 confidence, ) = govrn.attestations(0, address(this));
+        (uint256 contribution, uint8 confidence, ) = govrn.attestations(
+            0,
+            address(this)
+        );
         assertTrue(contribution == 0);
         assertTrue(confidence == 1);
     }
@@ -109,14 +120,18 @@ contract ContractTest is DSTestPlus {
         );
 
         govrn.permitAttest(owner, 0, 1, 100, block.timestamp, v, r, s);
-        (uint256 contribution, uint8 confidence, uint256 dateOfSubmission) = govrn.attestations(0, owner);
+        (
+            uint256 contribution,
+            uint8 confidence,
+            uint256 dateOfSubmission
+        ) = govrn.attestations(0, owner);
         assertTrue(contribution == 0);
         assertTrue(confidence == 1);
         assertTrue(dateOfSubmission == 100);
     }
 }
 
-contract ContractRevokeTest is DSTestPlus {
+contract GovrnRevokeTest is DSTestPlus {
     Govrn govrn;
     Vm public constant vm = Vm(HEVM_ADDRESS);
 
