@@ -16,6 +16,8 @@ jobs:
 
       - name: Install Foundry
         uses: onbjerg/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Run tests
         run: FOUNDRY_PROFILE=ci make test
