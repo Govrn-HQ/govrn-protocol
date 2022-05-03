@@ -4,6 +4,7 @@ import "forge-std/console.sol";
 
 contract Govrn {
     error DeadlinePassed();
+    error NotOwner();
 
     uint256 public contributionCount = 0;
     uint256 public revokePeriod = 0; // seconds
@@ -63,7 +64,6 @@ contract Govrn {
     }
 
     function mint(
-        address _owner,
         bytes memory _name,
         bytes memory _details,
         uint256 _dateOfSubmission,
@@ -71,35 +71,24 @@ contract Govrn {
         bytes memory _proof,
         address[] memory _partners
     ) public {
-        require(_owner != address(0), "INVALID_RECIPIENT");
-        if (contributions[contributionCount].owner != address(0)) {
-            contributionCount++;
-        }
-
-        contributions[contributionCount] = Contribution(
-            _owner,
+        // require(msg.sender == _owner, "owner does not match sender");
+        _mint(
             _name,
             _details,
             _dateOfSubmission,
             _dateOfEngagement,
-            _proof
+            _proof,
+            _partners
         );
-        for (uint256 i = 0; i < _partners.length; i++) {
-            partners[contributionCount][_partners[i]] = true;
-        }
-
-        // This needs some sort of reentry guard thing
-        // we have to make sure there is an increment or weirdness can happen
-        balanceOf[_owner]++;
-        emit Mint(_owner, contributionCount);
-        contributionCount++;
     }
 
     function bulkMint(BulkContribution[] memory _contributions) public {
         for (uint256 i = 0; i < _contributions.length; i++) {
             BulkContribution memory bulk = _contributions[i];
-            this.mint(
-                bulk.contribution.owner,
+            if (bulk.contribution.owner != msg.sender) {
+                revert NotOwner();
+            }
+            _mint(
                 bulk.contribution.name,
                 bulk.contribution.details,
                 bulk.contribution.dateOfSubmission,
@@ -113,22 +102,14 @@ contract Govrn {
     // verify contribution exists
     // verify sender is not 0 address
     function attest(uint256 _contribution, uint8 _confidence) public {
-        require(
-            contributions[_contribution].owner != address(0),
-            "Contribution does not exist"
-        );
-        require(
-            attestations[_contribution][msg.sender].dateOfSubmission == 0,
-            "Attestation exists"
-        );
+        _attest(_contribution, _confidence);
+    }
 
-        Attestation memory attestation = Attestation({
-            contribution: _contribution,
-            confidence: _confidence,
-            dateOfSubmission: block.timestamp
-        });
-        attestations[_contribution][msg.sender] = attestation;
-        emit Attest(msg.sender, _contribution, _confidence);
+    function bulkAttest(Attestation[] memory _attestations) public {
+        for (uint256 i = 0; i < _attestations.length; i++) {
+            Attestation memory attestation = _attestations[i];
+            _attest(attestation.contribution, attestation.confidence);
+        }
     }
 
     function revokeAttestatation(uint256 _contribution) public returns (bool) {
@@ -224,5 +205,56 @@ contract Govrn {
                     address(this)
                 )
             );
+    }
+
+    function _mint(
+        bytes memory _name,
+        bytes memory _details,
+        uint256 _dateOfSubmission,
+        uint256 _dateOfEngagement,
+        bytes memory _proof,
+        address[] memory _partners
+    ) internal {
+        require(msg.sender != address(0), "INVALID_RECIPIENT");
+        if (contributions[contributionCount].owner != address(0)) {
+            contributionCount++;
+        }
+
+        contributions[contributionCount] = Contribution(
+            msg.sender,
+            _name,
+            _details,
+            _dateOfSubmission,
+            _dateOfEngagement,
+            _proof
+        );
+        for (uint256 i = 0; i < _partners.length; i++) {
+            partners[contributionCount][_partners[i]] = true;
+        }
+
+        // This needs some sort of reentry guard thing
+        // we have to make sure there is an increment or weirdness can happen
+        balanceOf[msg.sender]++;
+        emit Mint(msg.sender, contributionCount);
+        contributionCount++;
+    }
+
+    function _attest(uint256 _contribution, uint8 _confidence) public {
+        require(
+            contributions[_contribution].owner != address(0),
+            "Contribution does not exist"
+        );
+        require(
+            attestations[_contribution][msg.sender].dateOfSubmission == 0,
+            "Attestation exists"
+        );
+
+        Attestation memory attestation = Attestation({
+            contribution: _contribution,
+            confidence: _confidence,
+            dateOfSubmission: block.timestamp
+        });
+        attestations[_contribution][msg.sender] = attestation;
+        emit Attest(msg.sender, _contribution, _confidence);
     }
 }

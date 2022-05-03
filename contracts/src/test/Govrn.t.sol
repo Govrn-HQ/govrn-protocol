@@ -16,7 +16,7 @@ contract ContractTest is DSTestPlus {
 
     function testNewContribution() public {
         address[] memory partners;
-        govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+        govrn.mint("test", "here", 1, 2, "proof", partners);
         (
             address owner,
             bytes memory name,
@@ -41,7 +41,7 @@ contract ContractTest is DSTestPlus {
     function testNewContributionWithPartners() public {
         address[] memory partners = new address[](1);
         partners[0] = address(this);
-        govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+        govrn.mint("test", "here", 1, 2, "proof", partners);
         bool exists = govrn.partners(0, address(this));
         assertTrue(exists);
     }
@@ -71,10 +71,27 @@ contract GovrnAttestTest is DSTestPlus {
     Govrn govrn;
     Vm public constant vm = Vm(HEVM_ADDRESS);
 
+    function mintContribution(
+        bytes memory _name,
+        bytes memory _details,
+        uint256 _dateOfSubmission,
+        uint256 _dateOfEngagement,
+        bytes memory _proof
+    ) public {
+        address[] memory partners = new address[](0);
+        govrn.mint(
+            _name,
+            _details,
+            _dateOfSubmission,
+            _dateOfEngagement,
+            _proof,
+            partners
+        );
+    }
+
     function setUp() public {
         govrn = new Govrn(1000);
-        address[] memory partners = new address[](0);
-        govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+        this.mintContribution("test", "here", 1, 2, "proof");
     }
 
     function testAttest() public {
@@ -88,13 +105,37 @@ contract GovrnAttestTest is DSTestPlus {
         assertTrue(confidence == 1);
     }
 
+    function testBulkAttest() public {
+        // attest
+        this.mintContribution("testName", "here4", 5, 6, "proof2");
+        Govrn.Attestation[] memory attestations = new Govrn.Attestation[](2);
+        attestations[0] = Govrn.Attestation(0, 2, 4);
+        attestations[1] = Govrn.Attestation(1, 3, 5);
+
+        govrn.bulkAttest(attestations);
+        (uint256 contribution, uint8 confidence, ) = govrn.attestations(
+            0,
+            address(this)
+        );
+
+        assertTrue(contribution == 0);
+        assertTrue(confidence == 2);
+        (uint256 contributionTwo, uint8 confidenceTwo, ) = govrn.attestations(
+            1,
+            address(this)
+        );
+
+        assertTrue(contributionTwo == 1);
+        assertTrue(confidenceTwo == 3);
+    }
+
     // TODO: Add deadline test, bad nonce, bad signature
     function testPermitAttest() public {
         uint256 privateKey = 0xBEEF;
         address owner = hevm.addr(privateKey);
         // mint
         address[] memory partners = new address[](0);
-        govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+        govrn.mint("test", "here", 1, 2, "proof", partners);
 
         (uint8 v, bytes32 r, bytes32 s) = hevm.sign(
             privateKey,
@@ -138,7 +179,7 @@ contract GovrnRevokeTest is DSTestPlus {
     function setUp() public {
         govrn = new Govrn(1000);
         address[] memory partners = new address[](0);
-        govrn.mint(address(this), "test", "here", 1, 2, "proof", partners);
+        govrn.mint("test", "here", 1, 2, "proof", partners);
     }
 
     function testRevokeAttestation() public {
