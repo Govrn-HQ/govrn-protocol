@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - master
   pull_request:
 
 jobs:
@@ -20,4 +20,4 @@ jobs:
           version: nightly
 
       - name: Run tests
-        run: FOUNDRY_PROFILE=ci make test
+        run: make test
