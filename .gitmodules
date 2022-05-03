@@ -2,7 +2,7 @@
 	path = lib/ds-test
 	url = https://github.com/dapphub/ds-test
 
-[submodule "contracts/lib/solmate"]
+[submodule "lib/solmate"]
 	path = contracts/lib/solmate
 	url = https://github.com/Rari-capital/solmate
 [submodule "lib/forge-std"]
