@@ -12,3 +12,5 @@ test   :; forge test
 trace   :; forge test -vvv
 clean  :; forge clean
 snapshot :; forge snapshot
+
+deploy :; forge create --rpc-url ${RPC_URL} --constructor-args 259200 -i src/Govrn.sol:Govrn
